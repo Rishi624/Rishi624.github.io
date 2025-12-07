@@ -70,8 +70,7 @@
         /* --- Grid Layout --- */
         .cert-grid {
             display: grid;
-            /* Adaptive Grid: fits as many as possible */
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 30px;
         }
 
@@ -80,7 +79,7 @@
             background: white;
             border: 1px solid #e4e4e7;
             border-radius: 8px;
-            overflow: hidden; /* Keeps image inside rounded corners */
+            overflow: hidden;
             box-shadow: 5px 5px 0px rgba(0,0,0,0.05);
             transition: all 0.3s ease;
             display: flex;
@@ -93,20 +92,30 @@
             border-color: var(--text-main);
         }
 
-        /* The Image Area */
+        /* --- UPDATED IMAGE SECTION --- */
         .cert-img-wrapper {
             width: 100%;
-            height: 180px;
-            background-color: #eee;
+            height: 220px; /* Made slightly taller to fit documents better */
+            background-color: #f8fafc; /* Very light blue-grey background */
             border-bottom: 1px solid #e4e4e7;
-            position: relative;
+            
+            /* Flexbox keeps the image perfectly centered */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px; /* Adds breathing room around the image */
         }
 
         .cert-img-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Ensures image covers area without stretching */
-            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain; /* Crucial: Ensures the whole image is visible */
+            
+            /* Adds a subtle shadow to the image itself, making it pop off the background */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(0,0,0,0.05);
         }
 
         /* Card Text Content */
@@ -146,7 +155,7 @@
 
         /* Verify Button */
         .verify-link {
-            margin-top: auto; /* Pushes button to bottom */
+            margin-top: auto;
             text-decoration: none;
             font-family: var(--font-code);
             font-size: 0.8rem;
@@ -177,39 +186,14 @@
 
         <div class="cert-card">
             <div class="cert-img-wrapper">
-                <img src="https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=600&auto=format&fit=crop" alt="Certificate">
+                <img src="Chess.jpeg" alt="Certificate 1">
             </div>
             <div class="cert-content">
-                <span class="issuer-badge"><i class="fas fa-shield-alt"></i> TryHackMe</span>
-                <h3 class="cert-title">Jr. Penetration Tester</h3>
+                <span class="issuer-badge"><i class="fas fa-shield-alt"></i> Chess gitam</span>
+                <h3 class="cert-title">Achieved 3rd place in Rooks Rally 3.0</h3>
                 <p class="cert-date">Issued: Nov 2025</p>
-                
             </div>
         </div>
-
-        <div class="cert-card">
-            <div class="cert-img-wrapper">
-                <img src="https://images.unsplash.com/photo-1589330694653-4d5bd74332e8?q=80&w=600&auto=format&fit=crop" alt="Certificate">
-            </div>
-            <div class="cert-content">
-                <span class="issuer-badge"><i class="fab fa-google"></i> Google</span>
-                <h3 class="cert-title">Cybersecurity Professional Certificate</h3>
-                <p class="cert-date">Issued: Aug 2025</p>
-            </div>
-        </div>
-
-        <div class="cert-card">
-            <div class="cert-img-wrapper">
-                <img src="https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?q=80&w=600&auto=format&fit=crop" alt="Certificate">
-            </div>
-            <div class="cert-content">
-                <span class="issuer-badge"><i class="fas fa-flag"></i> PicoCTF</span>
-                <h3 class="cert-title">Top 10% - Global Ranking</h3>
-                <p class="cert-date">Event: PicoCTF 2024</p>
-                </div>
-        </div>
-
     </div>
-
 </body>
 </html>
