@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Writeups - Rishyendra</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- Reuse Global Variables --- */
+        :root {
+            --bg-color: #f4f4f5;
+            --text-main: #18181b;
+            --text-muted: #52525b;
+            --accent-color: #0d9488;
+            --font-main: 'Outfit', sans-serif;
+            --font-code: 'Space Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#d4d4d8 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: var(--text-main);
+            font-family: var(--font-main);
+            padding: 40px 20px;
+            max-width: 800px;
+            margin: 0 auto; /* Centers the whole page */
+        }
+
+        /* --- Header --- */
+        header {
+            margin-bottom: 50px;
+            border-bottom: 2px solid var(--text-main);
+            padding-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-family: var(--font-code);
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+        }
+
+        .home-btn {
+            text-decoration: none;
+            color: var(--text-main);
+            font-family: var(--font-code);
+            font-weight: 700;
+            border: 1px solid var(--text-main);
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .home-btn:hover {
+            background-color: var(--text-main);
+            color: #fff;
+        }
+
+        /* --- The Categories (Accordion) --- */
+        .category-group {
+            margin-bottom: 20px;
+        }
+
+        /* The Box for the Category */
+        details {
+            background: white;
+            border: 1px solid #e4e4e7;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        details:hover {
+            box-shadow: 6px 6px 0px var(--accent-color);
+            transform: translate(-2px, -2px);
+            border-color: var(--text-main);
+        }
+
+        /* The Clickable Title (e.g., PicoCTF) */
+        summary {
+            padding: 20px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.2rem;
+            list-style: none; /* Hides default triangle */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Custom Plus Icon for the summary */
+        summary::after {
+            content: '+';
+            font-family: var(--font-code);
+            font-size: 1.5rem;
+            font-weight: 300;
+        }
+
+        details[open] summary::after {
+            content: '-';
+        }
+
+        details[open] summary {
+            border-bottom: 1px solid #e4e4e7;
+            background-color: #fafafa;
+        }
+
+        /* The List of Challenges inside */
+        .challenge-list {
+            padding: 0;
+            list-style: none;
+        }
+
+        .challenge-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+
+        .challenge-item:last-child {
+            border-bottom: none;
+        }
+
+        .challenge-item:hover {
+            background-color: #f0fdfa; /* Light teal tint */
+        }
+
+        .challenge-link {
+            text-decoration: none;
+            color: var(--text-main);
+            font-family: var(--font-code);
+            font-size: 0.9rem;
+            flex-grow: 1;
+        }
+
+        .challenge-link:hover {
+            color: var(--accent-color);
+            text-decoration: underline;
+        }
+
+        /* Tags (e.g., Web, Crypto) */
+        .tag {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: #e4e4e7;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tag.web { background-color: #fee2e2; color: #991b1b; } /* Red */
+        .tag.crypto { background-color: #fef3c7; color: #92400e; } /* Yellow */
+        .tag.forensics { background-color: #dbeafe; color: #1e40af; } /* Blue */
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fas fa-folder-open"></i> /Writeups</h1>
+        <a href="raw.html" class="home-btn">Back to Home</a>
+    </header>
+
+    <div class="category-group">
+        <details> <summary>TryHackMe Rooms</summary>
+            
+            <ul class="challenge-list">
+                
+                <li class="challenge-item">
+                    <a href="#" class="challenge-link">RootMe (Privilege Escalation)</a>
+                    <span class="tag web">Web</span>
+                </li>
+
+                <li class="challenge-item">
+                    <a href="#" class="challenge-link">Pickle Rick CTF</a>
+                    <span class="tag web">Web</span>
+                </li>
+
+                <li class="challenge-item">
+                    <a href="#" class="challenge-link">Basic Pentesting</a>
+                    <span class="tag forensics">Network</span>
+                </li>
+            </ul>
+        </details>
+    </div>
+
+    <div class="category-group">
+        <details>
+            <summary>PicoCTF 2024</summary>
+            <ul class="challenge-list">
+                
+                <li class="challenge-item">
+                    <a href="#" class="challenge-link">Interencdec</a>
+                    <span class="tag crypto">Crypto</span>
+                </li>
+
+                <li class="challenge-item">
+                    <a href="#" class="challenge-link">Web Gauntlet</a>
+                    <span class="tag web">Web</span>
+                </li>
+
+            </ul>
+        </details>
+    </div>
+</body>
+</html>
