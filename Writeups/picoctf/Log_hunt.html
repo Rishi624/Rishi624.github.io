@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Hunt - Writeup</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- Global Variables (Same as your Main Site) --- */
+        :root {
+            --bg-color: #f4f4f5;
+            --text-main: #18181b;
+            --text-muted: #52525b;
+            --accent-color: #0d9488;
+            --code-bg: #27272a;
+            --code-text: #4ade80; /* Hacker Green */
+            --font-main: 'Outfit', sans-serif;
+            --font-code: 'Space Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#d4d4d8 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: var(--text-main);
+            font-family: var(--font-main);
+            padding: 40px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* --- Header --- */
+        header {
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--text-main);
+            padding-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-family: var(--font-code);
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: var(--text-main);
+            font-family: var(--font-code);
+            font-weight: 700;
+            border: 1px solid var(--text-main);
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+        }
+
+        .back-btn:hover {
+            background-color: var(--text-main);
+            color: #fff;
+        }
+
+        /* --- Content Styling --- */
+        .content {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            border: 1px solid #e4e4e7;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-family: var(--font-code);
+            color: var(--accent-color);
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        p {
+            line-height: 1.8;
+            margin-bottom: 20px;
+            color: var(--text-main);
+        }
+
+        /* Styling the Code Blocks */
+        .code-block {
+            background-color: var(--code-bg);
+            color: var(--code-text);
+            font-family: var(--font-code);
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto; /* Allows scrolling if text is too long */
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        /* Styling the "Given Challenge" Quote */
+        blockquote {
+            background-color: #f0fdfa; /* Light Teal */
+            border-left: 4px solid var(--accent-color);
+            padding: 15px;
+            margin-bottom: 25px;
+            font-style: italic;
+            color: var(--text-muted);
+        }
+
+        /* The Flag Styling */
+        .flag {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: var(--font-code);
+            font-weight: 700;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Log_Hunt Writeup</h1>
+        <a href="../../writeups.html" class="back-btn">Back to List</a>
+    </header>
+
+    <div class="content">
+        
+        <h2>// Given Challenge</h2>
+        <blockquote>
+            Our server seems to be leaking pieces of a secret flag in its logs. The parts are scattered and sometimes repeated. Can you reconstruct the original flag? Download the logs and figure out the full flag from the fragments.
+        </blockquote>
+
+        <p>This is a very easy challenge. First, download the given log files manually or using the <code>wget</code> tool.</p>
+
+        <div class="code-block">
+wget "https://challenge-files.picoctf.net/c_amiable_citadel/49cec6157142f24a599f4164d5b63322c2494f801390d6f22eb91b3aa592bc66/server.log"
+        </div>
+
+        <p>After downloading the file, inspect the file using the <code>cat</code> command:</p>
+
+        <div class="code-block">
+cat server.log
+        </div>
+
+        <p>In the first line, you can see there is some part of the flag written after <strong>FLAGPART</strong>. We need to sort all lines containing "FLAGPART".</p>
+        <p>For that, we will be using <code>grep</code> with the <code>cat</code> command:</p>
+
+        <div class="code-block">
+cat server.log | grep "FLAGPART"
+        </div>
+
+        <p>Using this command, you can get the flag by combining all the parts found in the output.</p>
+
+        <h2>// The Result</h2>
+        <p>The final flag is: <br><br> <span class="flag">picoCTF{us3_y0urlinux_sk1lls_cedfa5fb}</span></p>
+
+    </div>
+
+</body>
+</html>
