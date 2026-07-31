@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Packed light Writeup</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root{
+            --bg:#f4f4f5;
+            --text:#18181b;
+            --muted:#52525b;
+            --accent:#0d9488;
+            --code-bg:#27272a;
+            --code-text:#4ade80;
+            --font-main:'Outfit',sans-serif;
+            --font-code:'Space Mono',monospace;
+        }
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            background:var(--bg);
+            background-image:radial-gradient(#d4d4d8 1px,transparent 1px);
+            background-size:24px 24px;
+            color:var(--text);
+            font-family:var(--font-main);
+            max-width:850px;
+            margin:auto;
+            padding:40px 20px;
+        }
+
+        header{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            border-bottom:2px solid black;
+            padding-bottom:20px;
+            margin-bottom:35px;
+        }
+
+        h1{
+            font-family:var(--font-code);
+            text-transform:uppercase;
+            font-size:1.5rem;
+        }
+
+        .back-btn{
+            text-decoration:none;
+            color:black;
+            border:1px solid black;
+            padding:8px 15px;
+            border-radius:5px;
+            font-family:var(--font-code);
+        }
+
+        .back-btn:hover{
+            background:black;
+            color:white;
+        }
+
+        .content{
+            background:white;
+            padding:40px;
+            border-radius:8px;
+            box-shadow:4px 4px rgba(0,0,0,.05);
+        }
+
+        h2{
+            margin-top:35px;
+            margin-bottom:15px;
+            color:var(--accent);
+            font-family:var(--font-code);
+        }
+
+        p{
+            line-height:1.8;
+            margin-bottom:18px;
+        }
+
+        blockquote{
+            border-left:4px solid var(--accent);
+            background:#f0fdfa;
+            padding:15px;
+            margin-bottom:25px;
+            font-style:italic;
+        }
+
+        .code-block{
+            background:var(--code-bg);
+            color:var(--code-text);
+            font-family:var(--font-code);
+            padding:15px;
+            border-left:4px solid var(--accent);
+            border-radius:5px;
+            overflow-x:auto;
+            margin-bottom:20px;
+            white-space:pre-wrap;
+        }
+
+        .flag{
+            background:var(--accent);
+            color:white;
+            padding:5px 10px;
+            border-radius:4px;
+            font-family:var(--font-code);
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+<h1>Concierge Briefing Writeup</h1>
+<a href="../../writeups.html" class="back-btn">Back to List</a>
+</header>
+
+<div class="content">
+
+<h2>// Given Challenge</h2>
+
+<blockquote>
+
+Analyze the provided PCAP and identify the covert communication channel. Recover the hidden data, decode it and obtain the flag.
+
+</blockquote>
+
+<p>
+The challenge looked like a normal PCAP analysis challenge, but the description already contained useful hints. It mentioned that packets were being sent every second, request headers looked suspicious, and something related to cryptography was involved.
+</p>
+
+<p>
+Instead of randomly looking through packets, I decided to follow the hints given in the description.
+</p>
+
+<h2>// Step 1 - Inspect the Network Traffic</h2>
+
+<p>
+After opening the PCAP in Wireshark, I first checked which protocols were present. Since the description mentioned request headers, I suspected HTTP traffic.
+</p>
+
+<p>
+Using the filter below showed communication over port 8080.
+</p>
+
+<div class="code-block">
+tcp.port == 8080
+</div>
+
+<p>
+The packets appeared at regular intervals, almost exactly one second apart, matching the behaviour described in the challenge.
+</p>
+
+<h2>// Step 2 - Follow the TCP Stream</h2>
+
+<p>
+I right-clicked one of the HTTP packets and selected <strong>Follow → TCP Stream</strong>.
+</p>
+
+<p>
+Instead of finding the flag, I found something much more useful: a Python script being downloaded from the server.
+</p>
+
+<p>
+Initially I thought this script might contain the flag directly, but after reading it carefully I realised it was actually malware responsible for stealing the victim's keystrokes.
+</p>
+
+<h2>// Step 3 - Reverse Engineering the Script</h2>
+
+<p>
+The script contained several important pieces of information:
+</p>
+
+<div class="code-block">
+C2_URL = "http://byte-lotus-hotel.thm:8080/"
+</div>
+
+<p>
+This confirmed where the stolen information was being sent.
+</p>
+
+<p>
+The next important function was:
+</p>
+
+<div class="code-block">
+def getkey():
+    p1 = "H03lSt@ff0Nly!"
+    p2 = "K3ep5cr3t!"
+    return p1 + p2
+</div>
+
+<p>
+This revealed the XOR encryption key used before transmitting every character.
+</p>
+
+<p>
+Another important function showed exactly how the data was hidden:
+</p>
+
+<div class="code-block">
+raw_bytes = character.encode("utf-8")
+encrypted = xor(raw_bytes, getkey().encode())
+b64_string = base64.b64encode(encrypted).decode()
+
+headers = {
+    "Cookie": f"hotel_sess_state={b64_string}"
+}
+</div>
+
+<p>
+This explained the complete process:
+</p>
+
+<div class="code-block">
+Keystroke
+    ↓
+UTF-8 Encode
+    ↓
+XOR Encryption
+    ↓
+Base64 Encoding
+    ↓
+Stored inside the HTTP Cookie header
+</div>
+
+<p>
+This also answered the challenge objective of identifying the covert communication channel. The malware was hiding every keystroke inside the Cookie header rather than the request body.
+</p>
+
+<h2>// Step 4 - Extracting the Data</h2>
+
+<p>
+Using the HTTP request packets, I extracted every value of:
+</p>
+
+<div class="code-block">
+hotel_sess_state=encoded text
+</div>
+
+<p>
+Each request contained only one encrypted character.
+</p>
+
+<p>
+My first mistake was trying to decode everything together as one large Base64 string. That produced meaningless output because every keystroke had been encrypted separately.
+</p>
+
+<p>
+After re-reading the Python code, I noticed that the XOR function was called once for each character, meaning every Base64 value also had to be decoded individually.
+</p>
+
+<h2>// Step 5 - Decoding</h2>
+
+<p>
+I used CyberChef to reverse the encoding process.
+</p>
+
+<div class="code-block">
+From Base64
+    ↓
+   XOR
+XOR Key: H03lSt@ff0Nly!K3ep5cr3t!
+</div>
+
+<p>
+Doing this for each Cookie value revealed one plaintext character at a time.
+</p>
+
+<p>
+Another mistake I made was getting two invalid characters during decoding. Initially I thought my XOR process was wrong, but every other character decoded correctly.
+</p>
+
+<p>
+After checking the packets again, I realised I have misunderstood O's as 0's.  Correcting the values fixed the problem immediately.
+</p>
+
+<h2>// Result</h2>
+
+<p>
+After decoding every encrypted keystroke and reconstructing the message, I recovered the challenge flag.</p>
+
+<p>
+
+<span class="flag">THM{V3r4_1s_w4tch1ng_0veR_y0u}</span>
+
+</p>
+
+</div>
+
+</body>
+</html>
